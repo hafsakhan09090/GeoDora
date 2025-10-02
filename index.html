@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    GeoDora - Explore the World
+{% endblock %}
+
+{% block body %}
+    <nav id="sidebar" class="col-md-4 col-lg-3 d-md-block sidebar collapse">
+        <div class="position-sticky pt-3">
+            <h3 class="sidebar-heading px-3 mt-4 mb-1" style="text-align:center;font-family:'segoe script';"><b>COUNTRIES</b></h3>
+            <div class="list-group list-group-flush country-list">
+                {% for country in countries %}
+                    <a href="/country/{{ country.name | urlencode }}" class="list-group-item list-group-item-action py-2">
+                       <img src="{{ country.flag }}" alt="Flag of {{ country.name }}" class="flag-image me-2">
+                       <span style="font-family:'Comic Sans MS';">{{ country.name }}</span>
+                    </a>
+                {% else %}
+                    <div class="list-group-item text-muted"style="font-family:'segoe script';" >No countries found for '{{ search_query }}'.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
+        <div id="country-detail-container" class="pt-3 pb-2 mb-3">
+            <div class="text-center placeholder-content" style="font-family:'segoe script';">
+                <i class="fas fa-globe-americas fa-5x text-muted mb-3"></i>
+                <h2>Welcome to <h1><b>GeoDora</b></h1></h2>
+                <p class="lead">Select a country from the list to begin.</p>
+            </div>
+        </div>
+    </main>
+{% endblock %}
