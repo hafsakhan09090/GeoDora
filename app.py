@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 
 DB_FOLDER = "database"
-DB_FILE = os.path.join(DB_FOLDER, "geography.db")
+DB_FILE = os.path.join(os.path.dirname(__file__), "geography.db")
 
 def get_db_connection():
     """Create a database connection with dictionary-style results."""
