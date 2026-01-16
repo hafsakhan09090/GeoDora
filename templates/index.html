@@ -1,33 +1,308 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    GeoDora - Explore the World
+{% block title %}GeoDora - Explore Countries{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white rounded p-4 p-md-5">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-4 fw-bold">Explore the World</h1>
+                        <p class="lead mb-4">
+                            Discover detailed information about countries, compare statistics, 
+                            and test your geography knowledge with our interactive quiz.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="/quiz" class="btn btn-light btn-lg">
+                                <i class="fas fa-gamepad me-2"></i>Take a Quiz
+                            </a>
+                            <a href="/stats" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-chart-bar me-2"></i>View Statistics
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center d-none d-md-block">
+                        <i class="fas fa-globe-americas" style="font-size: 8rem; opacity: 0.8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-tachometer-alt me-2"></i>Global Overview
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-primary">{{ stats.total_countries }}</div>
+                                <div class="text-muted">Countries</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-success">
+                                    {% if stats.total_population %}
+                                    {{ (stats.total_population|float / 1000000000)|round(1) }}B
+                                    {% else %}
+                                    {{ stats.total_countries }}
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted">
+                                    {% if stats.total_population %}Population{% else %}Countries{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-info">
+                                    {{ stats.continents|length }}
+                                </div>
+                                <div class="text-muted">Continents</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-warning">
+                                    {{ stats.popular_countries|length }}
+                                </div>
+                                <div class="text-muted">Recently Viewed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Countries List/Grid -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">
+                    {% if search_query %}
+                    Search Results for "{{ search_query }}"
+                    {% elif current_continent %}
+                    {{ current_continent }} Countries
+                    {% else %}
+                    All Countries
+                    {% endif %}
+                    <span class="badge bg-secondary ms-2">{{ countries|length }}</span>
+                </h3>
+                <div class="d-flex align-items-center">
+                    <span class="me-2 text-muted small">Showing {{ countries|length }} countries</span>
+                </div>
+            </div>
+            
+            {% if countries %}
+                {% if view_mode == 'grid' %}
+                <!-- Grid View -->
+                <div class="row g-4">
+                    {% for country in countries %}
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                        <div class="country-card card h-100 shadow-sm hover-lift">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <img src="{{ country.flag }}" 
+                                         alt="{{ country.name }} flag" 
+                                         class="flag-image-large mb-3">
+                                    <h5 class="card-title mb-2">{{ country.name }}</h5>
+                                    {% if country.region %}
+                                    <p class="text-muted small mb-3">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ country.region }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="country-info small">
+                                    {% if country.capital %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted">Capital:</span>
+                                        <span class="fw-medium">{{ country.capital }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if country.population %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted">Population:</span>
+                                        <span class="fw-medium">{{ country.population|format_int }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if country.area %}
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Area:</span>
+                                        <span class="fw-medium">{{ country.area|format_area }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <a href="/country/{{ country.name|urlencode }}" 
+                                       class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-info-circle me-1"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- List View -->
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Country</th>
+                                        {% if countries[0].region %}
+                                        <th>Continent</th>
+                                        {% endif %}
+                                        {% if countries[0].capital %}
+                                        <th>Capital</th>
+                                        {% endif %}
+                                        {% if countries[0].population %}
+                                        <th class="text-end">Population</th>
+                                        {% endif %}
+                                        {% if countries[0].area %}
+                                        <th class="text-end">Area (km²)</th>
+                                        {% endif %}
+                                        <th class="text-center pe-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for country in countries %}
+                                    <tr class="align-middle">
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ country.flag }}" 
+                                                     alt="{{ country.name }}" 
+                                                     class="flag-image me-3">
+                                                <span class="fw-medium">{{ country.name }}</span>
+                                            </div>
+                                        </td>
+                                        {% if country.region %}
+                                        <td>
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                                                {{ country.region }}
+                                            </span>
+                                        </td>
+                                        {% endif %}
+                                        {% if country.capital %}
+                                        <td>{{ country.capital }}</td>
+                                        {% endif %}
+                                        {% if country.population %}
+                                        <td class="text-end fw-medium">
+                                            {{ country.population|format_int }}
+                                        </td>
+                                        {% endif %}
+                                        {% if country.area %}
+                                        <td class="text-end fw-medium">
+                                            {{ country.area|format_area }}
+                                        </td>
+                                        {% endif %}
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="/country/{{ country.name|urlencode }}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-outline-secondary compare-btn" 
+                                                        data-country="{{ country.name }}"
+                                                        title="Add to Comparison">
+                                                    <i class="fas fa-balance-scale"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+            <!-- No Results -->
+            <div class="text-center py-5">
+                <i class="fas fa-globe-americas fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted mb-3">No countries found</h4>
+                {% if search_query %}
+                <p class="text-muted mb-4">No countries match your search for "{{ search_query }}"</p>
+                {% endif %}
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Back to All Countries
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Comparison Bar -->
+            <div id="comparison-bar" class="position-fixed bottom-0 end-0 m-3 p-3 bg-dark text-white rounded shadow-lg" 
+                 style="display: none; z-index: 1050; max-width: 400px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">
+                        <i class="fas fa-balance-scale me-2"></i>Comparison
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" onclick="hideComparisonBar()"></button>
+                </div>
+                <div id="comparison-items" class="mb-3"></div>
+                <div class="d-flex gap-2">
+                    <button id="clear-comparison" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-trash me-1"></i>Clear
+                    </button>
+                    <button id="compare-button" class="btn btn-primary btn-sm flex-grow-1" disabled>
+                        <i class="fas fa-chart-bar me-1"></i>Compare (0)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block body %}
-    <nav id="sidebar" class="col-md-4 col-lg-3 d-md-block sidebar collapse">
-        <div class="position-sticky pt-3">
-            <h3 class="sidebar-heading px-3 mt-4 mb-1" style="text-align:center;font-family:'segoe script';"><b>COUNTRIES</b></h3>
-            <div class="list-group list-group-flush country-list">
-                {% for country in countries %}
-                    <a href="/country/{{ country.name | urlencode }}" class="list-group-item list-group-item-action py-2">
-                       <img src="{{ country.flag }}" alt="Flag of {{ country.name }}" class="flag-image me-2">
-                       <span style="font-family:'Comic Sans MS';">{{ country.name }}</span>
-                    </a>
-                {% else %}
-                    <div class="list-group-item text-muted"style="font-family:'segoe script';" >No countries found for '{{ search_query }}'.</div>
-                {% endfor %}
-            </div>
-        </div>
-    </nav>
-
-    <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
-        <div id="country-detail-container" class="pt-3 pb-2 mb-3">
-            <div class="text-center placeholder-content" style="font-family:'segoe script';">
-                <i class="fas fa-globe-americas fa-5x text-muted mb-3"></i>
-                <h2>Welcome to <h1><b>GeoDora</b></h1></h2>
-                <p class="lead">Select a country from the list to begin.</p>
-            </div>
-        </div>
-    </main>
+{% block extra_js %}
+<script>
+    // Add country to comparison buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const compareButtons = document.querySelectorAll('.compare-btn');
+        compareButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const countryName = this.dataset.country;
+                addToComparison(countryName);
+            });
+        });
+        
+        // Clear comparison button
+        const clearComparisonBtn = document.getElementById('clear-comparison');
+        if (clearComparisonBtn) {
+            clearComparisonBtn.addEventListener('click', function() {
+                comparisonCountries = [];
+                localStorage.removeItem('comparisonCountries');
+                updateComparisonBar();
+                showNotification('Comparison cleared', 'info');
+            });
+        }
+        
+        // Hide comparison bar
+        window.hideComparisonBar = function() {
+            const comparisonBar = document.getElementById('comparison-bar');
+            if (comparisonBar) {
+                comparisonBar.style.display = 'none';
+            }
+        };
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,417 @@
+{% extends "layout.html" %}
+
+{% block title %}Geography Quiz - GeoDora{% endblock %}
+
+{% block sidebar %}
+<div class="p-3">
+    <h5 class="sidebar-heading mb-3">
+        <i class="fas fa-gamepad me-2"></i>Quiz Settings
+    </h5>
+    
+    <form id="quiz-settings" class="mb-4">
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1">Quiz Type</label>
+            <select class="form-select form-select-sm" name="type">
+                <option value="capitals" {% if quiz_type=='capitals' %}selected{% endif %}>Capital Cities</option>
+                <option value="flags" {% if quiz_type=='flags' %}selected{% endif %}>Flag Identification</option>
+                <option value="general" {% if quiz_type=='general' %}selected{% endif %}>General Knowledge</option>
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1">Difficulty</label>
+            <select class="form-select form-select-sm" name="difficulty">
+                <option value="easy" {% if difficulty=='easy' %}selected{% endif %}>Easy (10 questions)</option>
+                <option value="medium" {% if difficulty=='medium' %}selected{% endif %}>Medium (15 questions)</option>
+                <option value="hard" {% if difficulty=='hard' %}selected{% endif %}>Hard (20 questions)</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-sm w-100">
+            <i class="fas fa-play me-1"></i>Start New Quiz
+        </button>
+    </form>
+    
+    <div class="mt-4 pt-3 border-top">
+        <h6 class="sidebar-heading mb-3">
+            <i class="fas fa-trophy me-2"></i>Quiz Tips
+        </h6>
+        <div class="small">
+            <div class="mb-2">
+                <i class="fas fa-lightbulb text-warning me-1"></i>
+                Read questions carefully
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-clock text-info me-1"></i>
+                Take your time, no timer
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-undo text-success me-1"></i>
+                You can retry anytime
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Quiz Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-6 fw-bold mb-3">
+                    <i class="fas fa-gamepad me-2"></i>Geography Quiz
+                </h1>
+                <p class="lead mb-4">
+                    Test your knowledge about countries, capitals, and flags!
+                </p>
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="display-6 fw-bold text-primary" id="current-question">1</div>
+                                        <div class="text-muted small">Question</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="display-6 fw-bold text-success" id="score">0</div>
+                                        <div class="text-muted small">Score</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="display-6 fw-bold text-info" id="total-questions">{{ quiz_data|length }}</div>
+                                        <div class="text-muted small">Total</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quiz Container -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div id="quiz-container">
+                {% for item in quiz_data %}
+                <div class="quiz-question card shadow-sm mb-4" data-index="{{ loop.index0 }}" 
+                     {% if loop.index0 != 0 %}style="display: none;"{% endif %}>
+                    <div class="card-body">
+                        <!-- Question Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <span class="badge bg-primary mb-2">
+                                    Question {{ loop.index }} of {{ quiz_data|length }}
+                                </span>
+                                {% if item.country %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="{{ item.flag }}" 
+                                         alt="{{ item.country }}" 
+                                         class="flag-image me-3">
+                                    <span class="fw-medium">{{ item.country }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted small">
+                                {% if quiz_type == 'capitals' %}
+                                <i class="fas fa-landmark me-1"></i>Capital Cities
+                                {% elif quiz_type == 'flags' %}
+                                <i class="fas fa-flag me-1"></i>Flag Identification
+                                {% else %}
+                                <i class="fas fa-globe-americas me-1"></i>General Knowledge
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Question -->
+                        <h5 class="mb-4">
+                            {% if quiz_type == 'capitals' %}
+                            What is the capital of {{ item.country }}?
+                            {% elif quiz_type == 'flags' %}
+                            Which country does this flag belong to?
+                            {% else %}
+                            {{ item.question }}
+                            {% endif %}
+                        </h5>
+                        
+                        {% if quiz_type == 'flags' %}
+                        <div class="text-center mb-4">
+                            <img src="{{ item.flag }}" 
+                                 alt="Flag" 
+                                 class="flag-image-large mb-3">
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Options -->
+                        <div class="row g-3">
+                            {% for option in item.options %}
+                            <div class="col-md-6">
+                                <div class="quiz-option" data-answer="{{ option }}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 text-muted">{{ ['A', 'B', 'C', 'D'][loop.index0] }}.</div>
+                                        <div class="fw-medium">{{ option }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Navigation -->
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button class="btn btn-outline-secondary prev-btn" 
+                                    {% if loop.index0 == 0 %}disabled{% endif %}>
+                                <i class="fas fa-arrow-left me-2"></i>Previous
+                            </button>
+                            <button class="btn btn-primary next-btn">
+                                {% if loop.last %}
+                                Finish Quiz
+                                {% else %}
+                                Next Question <i class="fas fa-arrow-right ms-2"></i>
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Results Card (Hidden Initially) -->
+            <div id="results-card" class="card shadow-sm" style="display: none;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-trophy fa-4x text-warning mb-4"></i>
+                    <h2 class="mb-3">Quiz Completed!</h2>
+                    <div class="display-4 fw-bold text-primary mb-3" id="final-score">0</div>
+                    <p class="text-muted mb-4" id="result-message"></p>
+                    
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-8">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="fw-bold text-success" id="correct-answers">0</div>
+                                            <div class="text-muted small">Correct</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="fw-bold text-danger" id="incorrect-answers">0</div>
+                                            <div class="text-muted small">Incorrect</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <button id="review-quiz" class="btn btn-outline-primary">
+                            <i class="fas fa-redo me-2"></i>Review Answers
+                        </button>
+                        <button id="new-quiz" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>New Quiz
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Quiz state
+    let currentQuestion = 0;
+    let score = 0;
+    let userAnswers = new Array({{ quiz_data|length }}).fill(null);
+    const totalQuestions = {{ quiz_data|length }};
+    const correctAnswers = [
+        {% for item in quiz_data %}
+        "{{ item.correct_answer }}",
+        {% endfor %}
+    ];
+    
+    // Initialize
+    updateProgress();
+    
+    // Option selection
+    document.querySelectorAll('.quiz-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const questionCard = this.closest('.quiz-question');
+            const questionIndex = parseInt(questionCard.dataset.index);
+            
+            // Remove selection from other options in this question
+            questionCard.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Mark this option as selected
+            this.classList.add('selected');
+            
+            // Store user's answer
+            userAnswers[questionIndex] = this.dataset.answer;
+            
+            // Enable next button
+            questionCard.querySelector('.next-btn').disabled = false;
+        });
+    });
+    
+    // Navigation
+    document.querySelectorAll('.next-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionCard = this.closest('.quiz-question');
+            const questionIndex = parseInt(questionCard.dataset.index);
+            
+            // Check if answer is selected
+            if (userAnswers[questionIndex] === null) {
+                alert('Please select an answer before continuing.');
+                return;
+            }
+            
+            // Check if answer is correct
+            if (userAnswers[questionIndex] === correctAnswers[questionIndex]) {
+                score++;
+                updateScore();
+            }
+            
+            // Show next question or results
+            if (questionIndex < totalQuestions - 1) {
+                showQuestion(questionIndex + 1);
+            } else {
+                showResults();
+            }
+        });
+    });
+    
+    document.querySelectorAll('.prev-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionCard = this.closest('.quiz-question');
+            const questionIndex = parseInt(questionCard.dataset.index);
+            
+            if (questionIndex > 0) {
+                showQuestion(questionIndex - 1);
+            }
+        });
+    });
+    
+    // Quiz settings form
+    document.getElementById('quiz-settings').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams(formData);
+        window.location.href = `/quiz?${params.toString()}`;
+    });
+    
+    // Results buttons
+    document.getElementById('review-quiz').addEventListener('click', function() {
+        document.getElementById('results-card').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        showQuestion(0);
+        markAnswers();
+    });
+    
+    document.getElementById('new-quiz').addEventListener('click', function() {
+        window.location.reload();
+    });
+    
+    // Helper functions
+    function showQuestion(index) {
+        document.querySelectorAll('.quiz-question').forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        const targetCard = document.querySelector(`.quiz-question[data-index="${index}"]`);
+        targetCard.style.display = 'block';
+        
+        currentQuestion = index;
+        updateProgress();
+        
+        // Enable/disable prev button
+        targetCard.querySelector('.prev-btn').disabled = (index === 0);
+        
+        // Restore selection if previously answered
+        if (userAnswers[index] !== null) {
+            targetCard.querySelectorAll('.quiz-option').forEach(opt => {
+                if (opt.dataset.answer === userAnswers[index]) {
+                    opt.classList.add('selected');
+                }
+            });
+            targetCard.querySelector('.next-btn').disabled = false;
+        }
+        
+        // Update next button text for last question
+        const nextBtn = targetCard.querySelector('.next-btn');
+        if (index === totalQuestions - 1) {
+            nextBtn.innerHTML = 'Finish Quiz';
+        } else {
+            nextBtn.innerHTML = 'Next Question <i class="fas fa-arrow-right ms-2"></i>';
+        }
+    }
+    
+    function showResults() {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('results-card').style.display = 'block';
+        
+        const correctCount = score;
+        const incorrectCount = totalQuestions - correctCount;
+        const percentage = Math.round((correctCount / totalQuestions) * 100);
+        
+        document.getElementById('final-score').textContent = `${percentage}%`;
+        document.getElementById('correct-answers').textContent = correctCount;
+        document.getElementById('incorrect-answers').textContent = incorrectCount;
+        
+        // Result message based on score
+        let message = '';
+        if (percentage >= 90) {
+            message = 'Excellent! You\'re a geography expert! 🎯';
+        } else if (percentage >= 70) {
+            message = 'Great job! You know your geography well! 👍';
+        } else if (percentage >= 50) {
+            message = 'Good effort! Keep learning! 📚';
+        } else {
+            message = 'Keep practicing! You\'ll get better! 💪';
+        }
+        
+        document.getElementById('result-message').textContent = message;
+    }
+    
+    function markAnswers() {
+        document.querySelectorAll('.quiz-question').forEach(card => {
+            const index = parseInt(card.dataset.index);
+            const userAnswer = userAnswers[index];
+            const correctAnswer = correctAnswers[index];
+            
+            card.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'wrong');
+                
+                if (opt.dataset.answer === correctAnswer) {
+                    opt.classList.add('correct');
+                }
+                
+                if (userAnswer && opt.dataset.answer === userAnswer && userAnswer !== correctAnswer) {
+                    opt.classList.add('wrong');
+                }
+            });
+            
+            // Disable further selection
+            card.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+        });
+    }
+    
+    function updateProgress() {
+        document.getElementById('current-question').textContent = currentQuestion + 1;
+    }
+    
+    function updateScore() {
+        document.getElementById('score').textContent = score;
+    }
+</script>
+{% endblock %}

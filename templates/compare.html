@@ -1,0 +1,252 @@
+{% extends "layout.html" %}
+
+{% block title %}Compare Countries - GeoDora{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-6 fw-bold mb-2">Country Comparison</h1>
+                    <p class="text-muted mb-0">
+                        Compare {{ countries|length }} countries side by side
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                    <button id="clear-comparison" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Clear Comparison
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Selected Countries -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Selected Countries</h5>
+                    <div class="d-flex flex-wrap gap-3">
+                        {% for country in countries %}
+                        <div class="text-center">
+                            <img src="{{ country.flag }}" 
+                                 alt="{{ country.name }}" 
+                                 class="flag-image-large mb-2">
+                            <div class="fw-medium">{{ country.name }}</div>
+                            <small class="text-muted">{{ country.region }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comparison Charts -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-chart-bar me-2"></i>Comparison Overview
+                    </h5>
+                    
+                    <!-- Population Comparison -->
+                    <div class="mb-5">
+                        <h6 class="mb-3">Population Comparison</h6>
+                        <div class="comparison-chart d-flex align-items-end gap-3" style="height: 200px;">
+                            {% for country in countries %}
+                            {% set pop = country.population|float if country.population else 0 %}
+                            {% set max_pop = comparisons.population.max|float if comparisons.population.max else 1 %}
+                            {% set height = (pop / max_pop * 100) if max_pop > 0 else 0 %}
+                            <div class="flex-grow-1 text-center">
+                                <div class="chart-bar mx-auto" 
+                                     style="height: {{ height }}%; width: 60px;"
+                                     data-value="{{ country.population|format_int }}">
+                                </div>
+                                <div class="mt-2 fw-medium small">{{ country.name[:10] }}{% if country.name|length > 10 %}...{% endif %}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Area Comparison -->
+                    <div>
+                        <h6 class="mb-3">Area Comparison (km²)</h6>
+                        <div class="comparison-chart d-flex align-items-end gap-3" style="height: 200px;">
+                            {% for country in countries %}
+                            {% set area = country.area|float if country.area else 0 %}
+                            {% set max_area = comparisons.area.max|float if comparisons.area.max else 1 %}
+                            {% set height = (area / max_area * 100) if max_area > 0 else 0 %}
+                            <div class="flex-grow-1 text-center">
+                                <div class="chart-bar mx-auto" 
+                                     style="height: {{ height }}%; width: 60px; background: linear-gradient(to top, var(--info-color), #138496);"
+                                     data-value="{{ country.area|format_area }}">
+                                </div>
+                                <div class="mt-2 fw-medium small">{{ country.name[:10] }}{% if country.name|length > 10 %}...{% endif %}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Comparison Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-table me-2"></i>Detailed Comparison
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 200px;">Metric</th>
+                                    {% for country in countries %}
+                                    <th class="text-center">
+                                        <img src="{{ country.flag }}" 
+                                             alt="{{ country.name }}" 
+                                             class="flag-image me-2">
+                                        {{ country.name }}
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-medium">Capital</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.capital or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Continent</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.region or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Population</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">
+                                        {% if country.population %}
+                                        {{ country.population|format_int }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Area (km²)</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">
+                                        {% if country.area %}
+                                        {{ country.area|format_area }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Government</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.democracy_type or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Currency</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.currency or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Languages</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">
+                                        {% if country.languages %}
+                                        {{ country.languages|join(', ') }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Calling Code</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.tele_code or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td class="fw-medium">Timezone</td>
+                                    {% for country in countries %}
+                                    <td class="text-center">{{ country.timezone or 'N/A' }}</td>
+                                    {% endfor %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Add More Countries to Comparison</h6>
+                            <p class="text-muted small mb-0">
+                                You can add up to 5 countries for comparison. 
+                                Currently comparing {{ countries|length }} countries.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="/" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Browse More Countries
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Clear comparison
+    document.getElementById('clear-comparison').addEventListener('click', function() {
+        if (confirm('Are you sure you want to clear the comparison?')) {
+            localStorage.removeItem('comparisonCountries');
+            window.location.href = '/';
+        }
+    });
+    
+    // Initialize tooltips for chart bars
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartBars = document.querySelectorAll('.chart-bar');
+        chartBars.forEach(bar => {
+            bar.addEventListener('mouseenter', function() {
+                this.style.opacity = '0.9';
+            });
+            bar.addEventListener('mouseleave', function() {
+                this.style.opacity = '1';
+            });
+        });
+    });
+</script>
+{% endblock %}

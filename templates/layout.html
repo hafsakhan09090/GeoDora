@@ -3,55 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GeoDora - Explore countries, compare statistics, and test your geography knowledge">
+    <meta name="keywords" content="geography, countries, maps, flags, capitals, quiz">
+    <meta name="author" content="Hafsa Khan">
+    
+    <title>{% block title %}GeoDora - Explore the World{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/styles.css">
-    <title>{% block title %}GeoDora{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 </head>
 <body>
-    <header class="navbar navbar-expand-md sticky-top p-0 shadow-sm">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
         <div class="container-fluid">
-            <a class="navbar-brand col-md-4 col-lg-3 me-0 px-3 fs-6" href="/">
-                <h4><i class="fas fa-globe-americas me-2"></i><strong>GeoDora</strong></h4>
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-globe-americas me-2"></i>
+                <span class="fw-bold">GeoDora</span>
             </a>
-            <div class="d-flex align-items-center">
-                <form class="w-100 me-3" role="search" action="/" method="get">
-                    <input type="search" id="search-input" name="search" class="form-control" placeholder="Search countries..." value="{{ search_query or '' }}">
-                </form>
-                <div class="navbar-nav">
-                    <div class="nav-item text-nowrap">
-                        <a class="nav-link px-3 theme-toggler" id="theme-toggler">
-                            <i class="fas fa-moon" id="theme-icon"></i>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/stats">
+                            <i class="fas fa-chart-bar me-1"></i> Statistics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/quiz">
+                            <i class="fas fa-gamepad me-1"></i> Quiz
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    <!-- Search Form -->
+                    <form class="d-flex me-3" action="/" method="get" role="search" id="search-form">
+                        <div class="input-group">
+                            <input type="search" 
+                                   name="search" 
+                                   class="form-control" 
+                                   placeholder="Search countries..." 
+                                   value="{{ search_query or '' }}"
+                                   aria-label="Search countries"
+                                   id="search-input">
+                            <button class="btn btn-outline-light" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Theme Toggler -->
+                    <button class="btn btn-outline-light me-2 theme-toggler" id="theme-toggler" title="Toggle theme">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    
+                    <!-- View Mode Toggle -->
+                    <div class="btn-group me-2" role="group">
+                        <a href="{{ update_url_param('view', 'list') }}" 
+                           class="btn btn-outline-light {{ 'active' if view_mode == 'list' else '' }}"
+                           id="list-view-btn"
+                           title="List View">
+                            <i class="fas fa-list"></i>
+                        </a>
+                        <a href="{{ update_url_param('view', 'grid') }}" 
+                           class="btn btn-outline-light {{ 'active' if view_mode == 'grid' else '' }}"
+                           id="grid-view-btn"
+                           title="Grid View">
+                            <i class="fas fa-th-large"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <div class="container-fluid">
+    <!-- Main Content -->
+    <div class="container-fluid mt-3">
         <div class="row">
-            {% block body %}{% endblock %}
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-xl-2 d-none d-lg-block">
+                <div class="sidebar sidebar-sticky">
+                    {% block sidebar %}
+                    <div class="p-3">
+                        <h5 class="sidebar-heading mb-3">
+                            <i class="fas fa-filter me-2"></i>Filters
+                        </h5>
+                        
+                        <!-- Sort Options -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Sort by:</label>
+                            <select class="form-select form-select-sm" id="sort-select">
+                                <option value="name" {% if current_sort=='name' %}selected{% endif %}>Name (A-Z)</option>
+                                <option value="name_desc" {% if current_sort=='name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                                {% if countries and countries[0].population %}
+                                <option value="pop_high" {% if current_sort=='pop_high' %}selected{% endif %}>Population (High to Low)</option>
+                                <option value="pop_low" {% if current_sort=='pop_low' %}selected{% endif %}>Population (Low to High)</option>
+                                {% endif %}
+                                {% if countries and countries[0].area %}
+                                <option value="area_high" {% if current_sort=='area_high' %}selected{% endif %}>Area (Large to Small)</option>
+                                <option value="area_low" {% if current_sort=='area_low' %}selected{% endif %}>Area (Small to Large)</option>
+                                {% endif %}
+                                {% if countries and countries[0].region %}
+                                <option value="region" {% if current_sort=='region' %}selected{% endif %}>Continent</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        
+                        <!-- Continent Filter -->
+                        {% if continents %}
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Continent:</label>
+                            <select class="form-select form-select-sm" id="continent-select">
+                                <option value="">All Continents</option>
+                                {% for continent in continents %}
+                                <option value="{{ continent.region }}" 
+                                       {% if current_continent==continent.region %}selected{% endif %}>
+                                    {{ continent.region }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Quick Stats -->
+                        {% if stats %}
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="sidebar-heading mb-3">
+                                <i class="fas fa-chart-pie me-2"></i>Quick Stats
+                            </h6>
+                            <div class="small">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Total Countries:</span>
+                                    <span class="fw-bold">{{ stats.total_countries }}</span>
+                                </div>
+                                {% if stats.largest_country %}
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Largest:</span>
+                                    <span class="fw-bold text-truncate" title="{{ stats.largest_country }}">
+                                        {{ stats.largest_country.split('(')[0].strip() }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                {% if stats.popular_countries %}
+                                <div class="mt-3">
+                                    <span class="d-block mb-2">Recently Viewed:</span>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for country in stats.popular_countries[:5] %}
+                                        <a href="/country/{{ country.name|urlencode }}" 
+                                           class="badge bg-primary text-decoration-none"
+                                           title="{{ country.name }}">
+                                            <img src="{{ country.flag }}" 
+                                                 alt="{{ country.name }}" 
+                                                 class="flag-tiny me-1">
+                                            {{ country.name[:10] }}{% if country.name|length > 10 %}...{% endif %}
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Country of the Day -->
+                        {% if random_country %}
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="sidebar-heading mb-3">
+                                <i class="fas fa-star me-2"></i>Country of the Day
+                            </h6>
+                            <div class="text-center">
+                                <img src="{{ random_country.flag }}" 
+                                     alt="{{ random_country.name }}" 
+                                     class="flag-image mb-2">
+                                <h6 class="mb-1">{{ random_country.name }}</h6>
+                                <p class="small text-muted mb-2">
+                                    {% if random_country.capital %}{{ random_country.capital }} • {% endif %}
+                                    {{ random_country.region }}
+                                </p>
+                                <a href="/country/{{ random_country.name|urlencode }}" 
+                                   class="btn btn-sm btn-outline-primary w-100">
+                                    Explore
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <main class="col-lg-9 col-xl-10 px-lg-4">
+                {% block content %}{% endblock %}
+            </main>
         </div>
     </div>
 
-    <footer class="footer mt-auto py-3">
-        <div class="container text-center">
-            <h6><span style="font-size:15px; font-family:'cooper black'; color: var(--sidebar-background)">Project by Hafsa Khan</span></h6>
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-dark text-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <span class="text-muted">
+                        <i class="fas fa-globe-americas me-1"></i>
+                        GeoDora &copy; 2024 • Project by Hafsa Khan
+                    </span>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="small">
+                        <span class="text-muted me-3">
+                            <i class="fas fa-database me-1"></i>
+                            {{ stats.total_countries if stats else 0 }} countries
+                        </span>
+                        <a href="https://github.com/hafsakhan09090" 
+                           class="text-muted me-3 text-decoration-none"
+                           target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                        <a href="/about" class="text-muted text-decoration-none">
+                            <i class="fas fa-info-circle me-1"></i>About
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
     <script>
+        // Theme Toggler
         const themeToggler = document.getElementById('theme-toggler');
         const themeIcon = document.getElementById('theme-icon');
         const currentTheme = localStorage.getItem('theme') || 'light';
+        
         document.documentElement.setAttribute('data-theme', currentTheme);
         if (currentTheme === 'dark') {
             themeIcon.classList.replace('fa-moon', 'fa-sun');
         }
+        
         themeToggler.addEventListener('click', () => {
             let newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
@@ -59,6 +279,189 @@
             themeIcon.classList.toggle('fa-sun', newTheme === 'dark');
             themeIcon.classList.toggle('fa-moon', newTheme === 'light');
         });
+        
+        // Helper function to update URL parameters
+        function updateUrlParams(params) {
+            const url = new URL(window.location.href);
+            const searchParams = new URLSearchParams(url.search);
+            
+            // Update or add parameters
+            for (const [key, value] of Object.entries(params)) {
+                if (value === null || value === '') {
+                    searchParams.delete(key);
+                } else {
+                    searchParams.set(key, value);
+                }
+            }
+            
+            // Remove view parameter if it's the default 'list'
+            if (searchParams.get('view') === 'list') {
+                searchParams.delete('view');
+            }
+            
+            // Build new URL
+            const newUrl = url.pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
+            return newUrl;
+        }
+        
+        // Filter Update Function
+        function updateFilters() {
+            const search = document.getElementById('search-input')?.value || '';
+            const sort = document.getElementById('sort-select')?.value || 'name';
+            const continent = document.getElementById('continent-select')?.value || '';
+            const view = '{{ view_mode }}' || 'list';
+            
+            const params = {
+                search: search || null,
+                sort: sort !== 'name' ? sort : null,
+                continent: continent || null,
+                view: view !== 'list' ? view : null
+            };
+            
+            window.location.href = updateUrlParams(params);
+        }
+        
+        // Initialize filter event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortSelect = document.getElementById('sort-select');
+            const continentSelect = document.getElementById('continent-select');
+            
+            if (sortSelect) {
+                sortSelect.addEventListener('change', updateFilters);
+            }
+            
+            if (continentSelect) {
+                continentSelect.addEventListener('change', updateFilters);
+            }
+            
+            // Auto-submit search on Enter
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        updateFilters();
+                    }
+                });
+            }
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Initialize view mode buttons
+            const listViewBtn = document.getElementById('list-view-btn');
+            const gridViewBtn = document.getElementById('grid-view-btn');
+            
+            if (listViewBtn) {
+                listViewBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const params = {
+                        view: 'list',
+                        search: '{{ search_query or "" }}',
+                        sort: '{{ current_sort or "name" }}',
+                        continent: '{{ current_continent or "" }}'
+                    };
+                    window.location.href = updateUrlParams(params);
+                });
+            }
+            
+            if (gridViewBtn) {
+                gridViewBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const params = {
+                        view: 'grid',
+                        search: '{{ search_query or "" }}',
+                        sort: '{{ current_sort or "name" }}',
+                        continent: '{{ current_continent or "" }}'
+                    };
+                    window.location.href = updateUrlParams(params);
+                });
+            }
+        });
+        
+        // Global comparison functionality
+        let comparisonCountries = JSON.parse(localStorage.getItem('comparisonCountries') || '[]');
+        
+        function updateComparisonBar() {
+            const itemsContainer = document.getElementById('comparison-items');
+            const compareButton = document.getElementById('compare-button');
+            const comparisonBar = document.getElementById('comparison-bar');
+            
+            if (comparisonBar && itemsContainer && compareButton) {
+                if (comparisonCountries.length > 0) {
+                    comparisonBar.style.display = 'block';
+                    
+                    // Update items
+                    itemsContainer.innerHTML = comparisonCountries.map(country => `
+                        <span class="badge bg-light text-dark me-1 mb-1">
+                            ${country}
+                            <button type="button" class="btn-close btn-close-sm ms-1" 
+                                    onclick="removeFromComparison('${country.replace(/'/g, "\\'")}')"></button>
+                        </span>
+                    `).join('');
+                    
+                    // Update compare button
+                    compareButton.textContent = `Compare (${comparisonCountries.length})`;
+                    compareButton.disabled = comparisonCountries.length < 2;
+                    compareButton.onclick = () => {
+                        window.location.href = `/compare?countries=${comparisonCountries.join(',')}`;
+                    };
+                } else {
+                    comparisonBar.style.display = 'none';
+                }
+            }
+        }
+        
+        function addToComparison(countryName) {
+            if (!comparisonCountries.includes(countryName)) {
+                if (comparisonCountries.length >= 5) {
+                    alert('Maximum 5 countries can be compared at once.');
+                    return;
+                }
+                comparisonCountries.push(countryName);
+                localStorage.setItem('comparisonCountries', JSON.stringify(comparisonCountries));
+                updateComparisonBar();
+                
+                // Show notification
+                showNotification(`Added ${countryName} to comparison`, 'success');
+            } else {
+                showNotification(`${countryName} is already in comparison`, 'warning');
+            }
+        }
+        
+        function removeFromComparison(countryName) {
+            comparisonCountries = comparisonCountries.filter(c => c !== countryName);
+            localStorage.setItem('comparisonCountries', JSON.stringify(comparisonCountries));
+            updateComparisonBar();
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `position-fixed top-0 end-0 m-3 alert alert-${type} alert-dismissible fade show`;
+            notification.style.zIndex = '1060';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Initialize comparison bar on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateComparisonBar();
+        });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,323 @@
+{% extends "layout.html" %}
+
+{% block title %}Statistics - GeoDora{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-6 fw-bold mb-2">Global Statistics</h1>
+                    <p class="text-muted mb-0">
+                        Comprehensive analytics and insights about world countries
+                    </p>
+                </div>
+                <div>
+                    <span class="badge bg-primary">
+                        <i class="fas fa-database me-1"></i>
+                        {{ stats.total_countries }} Countries
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Total Countries</div>
+                            <div class="display-6 fw-bold text-primary">{{ stats.total_countries }}</div>
+                        </div>
+                        <div class="display-4 text-primary opacity-25">
+                            <i class="fas fa-globe-americas"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Total Population</div>
+                            <div class="display-6 fw-bold text-success">
+                                {% if stats.total_population %}
+                                {{ (stats.total_population|float / 1000000000)|round(1) }}B
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="display-4 text-success opacity-25">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-info shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Continents</div>
+                            <div class="display-6 fw-bold text-info">{{ stats.continents|length }}</div>
+                        </div>
+                        <div class="display-4 text-info opacity-25">
+                            <i class="fas fa-earth-americas"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Recently Viewed</div>
+                            <div class="display-6 fw-bold text-warning">{{ stats.popular_countries|length }}</div>
+                        </div>
+                        <div class="display-4 text-warning opacity-25">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Continent Distribution -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-chart-pie me-2"></i>Countries by Continent
+                    </h5>
+                    
+                    {% if continent_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Continent</th>
+                                    <th class="text-end">Countries</th>
+                                    <th class="text-end">Population</th>
+                                    <th class="text-end">Area (km²)</th>
+                                    <th class="text-end">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for continent in continent_stats %}
+                                {% set percentage = (continent.country_count / stats.total_countries * 100)|round(1) %}
+                                <tr>
+                                    <td class="fw-medium">{{ continent.region }}</td>
+                                    <td class="text-end">{{ continent.country_count }}</td>
+                                    <td class="text-end">
+                                        {% if continent.total_population %}
+                                        {{ continent.total_population|format_int }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if continent.total_area %}
+                                        {{ continent.total_area|format_int }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex align-items-center justify-content-end">
+                                            <div class="progress flex-grow-1 ms-2" style="max-width: 100px; height: 6px;">
+                                                <div class="progress-bar" style="width: {{ percentage }}%;"></div>
+                                            </div>
+                                            <span class="ms-2">{{ percentage }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No continent data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top 10 Most Populous -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-users me-2"></i>Top 10 Most Populous
+                    </h5>
+                    
+                    {% if top_populous %}
+                    <div class="list-group list-group-flush">
+                        {% for country in top_populous %}
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 text-muted fw-medium">{{ loop.index }}</div>
+                                <img src="{{ country.flag }}" 
+                                     alt="{{ country.name }}" 
+                                     class="flag-image me-3">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">{{ country.name }}</div>
+                                    <small class="text-muted">
+                                        {{ country.population|format_int }} people
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No population data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top 10 Largest by Area -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-expand-arrows-alt me-2"></i>Top 10 Largest by Area
+                    </h5>
+                    
+                    {% if top_area %}
+                    <div class="row">
+                        {% for country in top_area %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <span class="badge bg-primary rounded-circle" 
+                                                  style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                                {{ loop.index }}
+                                            </span>
+                                        </div>
+                                        <img src="{{ country.flag }}" 
+                                             alt="{{ country.name }}" 
+                                             class="flag-image me-3">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-medium">{{ country.name }}</div>
+                                            <small class="text-muted">
+                                                {{ country.area|format_area }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No area data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Facts -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Quick Facts
+                    </h5>
+                    
+                    <div class="fact-box mb-3">
+                        <i class="fas fa-crown text-warning me-2"></i>
+                        {% if stats.largest_country %}
+                        Largest country: {{ stats.largest_country }}
+                        {% else %}
+                        Largest country data not available
+                        {% endif %}
+                    </div>
+                    
+                    <div class="fact-box mb-3">
+                        <i class="fas fa-chess-pawn text-info me-2"></i>
+                        {% if stats.smallest_country %}
+                        Smallest country: {{ stats.smallest_country }}
+                        {% else %}
+                        Smallest country data not available
+                        {% endif %}
+                    </div>
+                    
+                    <div class="fact-box mb-3">
+                        <i class="fas fa-chart-line text-success me-2"></i>
+                        Average population per country: 
+                        {% if stats.total_population and stats.total_countries %}
+                        {{ (stats.total_population|float / stats.total_countries)|round|format_int }}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </div>
+                    
+                    <div class="fact-box">
+                        <i class="fas fa-compress-arrows-alt text-primary me-2"></i>
+                        Database contains {{ stats.total_countries }} countries with detailed information
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recently Viewed -->
+    {% if stats.popular_countries %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-history me-2"></i>Recently Viewed Countries
+                    </h5>
+                    
+                    <div class="row g-3">
+                        {% for country in stats.popular_countries %}
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <a href="/country/{{ country.name|urlencode }}" 
+                               class="card border h-100 text-decoration-none hover-lift">
+                                <div class="card-body text-center p-3">
+                                    <img src="{{ country.flag }}" 
+                                         alt="{{ country.name }}" 
+                                         class="flag-image mb-3">
+                                    <div class="fw-medium small">{{ country.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

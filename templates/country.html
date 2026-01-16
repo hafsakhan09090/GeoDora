@@ -1,67 +1,25 @@
-{% extends "layout.html" %}
-
-{% block title %}
-    GeoDora - {{ country.name }}
-{% endblock %}
-
-{% block body %}
-    <nav id="sidebar" class="col-md-4 col-lg-3 d-md-block sidebar collapse">
-        <div class="position-sticky pt-3">
-            <h4 class="sidebar-heading px-3 mt-4 mb-1"><a href="/" class="text-decoration-none text-reset" style="font-family:'segoe script';">&larr; <b>Back to List</b></a></h4>
-        </div>
-    </nav>
-
-    <main class="col-md-8 ms-sm-auto col-lg-9 px-md-4">
-        <div id="country-detail-container" class="pt-3 pb-2 mb-3">
-            <div class="container-fluid">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="display-4"><img src="{{ country.flag }}" alt="Flag of {{ country.name }}" class="flag-image-large me-3">{{ country.name }}</h1>
-                        <p class="lead text-muted" style="font-size:25px; font-family:monoscript;">{{ country.subregion }}, {{ country.region }}</p>
+<!-- Bordering Countries -->
+{% if borders %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-4">
+            <i class="fas fa-border-all me-2 text-primary"></i>Bordering Countries
+        </h5>
+        <div class="row g-2">
+            {% for border in borders %}
+            <div class="col-6">
+                <a href="/country/{{ border.name|urlencode }}" 
+                   class="card border h-100 text-decoration-none hover-lift">
+                    <div class="card-body text-center p-3">
+                        <img src="{{ border.flag }}" 
+                             alt="{{ border.name }}" 
+                             class="flag-image mb-2">
+                        <div class="small fw-medium">{{ border.name }}</div>
                     </div>
-                </div>
-                <hr>
-                <div class="row mt-4">
-                    <div class="col-lg-6 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-body">
-                                <h5 class="card-title"style="text-align: center; font-size:30px; font-family:'segoe script';"><b>Key Information</b></h5>
-                                <ul class="list-group list-group-flush" style="text-align: center; font-size:30px; font-family:'Sitka Text';">
-                                    <li class="list-group-item"><pre><strong>Capital:</strong> {{ country.capital }}</pre></li>
-                                    <li class="list-group-item"><pre><strong>Population:</strong> {{ country.population }}</pre></li>
-                                    <li class="list-group-item"><pre><strong>Area:</strong> {{ country.area }}</pre></li>
-                                    <li class="list-group-item"><pre><strong>Currency:</strong> {{ country.currency }}</li>
-                                    <li class="list-group-item"><pre><strong>Independence:</strong> {{ country.independence }}</li>
-                                    <li class="list-group-item"><pre><strong>Government:</strong> {{ country.democracy_type }}</li>
-                                    <li class="list-group-item"><pre><strong>Languages:</strong> {{ country.languages | join(', ') }}</li>
-                                    <li class="list-group-item"><pre><strong>Calling Code:</strong> {{ country.tele_code }}</li>
-                                    <li class="list-group-item"><pre><strong>Timezone:</strong> {{ country.timezone }}</li>
-                                </ul>
-                            </div>
-                        </div>
-                        {% if states %}
-                        <div class="card shadow-sm mt-4">
-                            <div class="card-body">
-                                <h5 class="card-title" style="text-align: center;font-size:30px;font-family:'segoe script';"><b>States & Provinces ({{ country.num_of_states }})</b></h5>
-                                <ul class="list-group list-group-flush states-list">
-                                    {% for state in states %}
-                                        <li class="list-group-item" style="font-size:25px;font-family:monoscript;">{{ state.name }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-lg-6 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-body">
-                                <h5 class="card-title" style="text-align: center;font-size:30px;font-family:'segoe script';"><b>Political Map</b></h5>
-                                <img src="{{ country.political_map }}" class="map" alt="Map of {{ country.name }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </a>
             </div>
+            {% endfor %}
         </div>
-    </main>
-{% endblock %}
+    </div>
+</div>
+{% endif %}

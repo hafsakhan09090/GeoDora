@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-1 text-muted">404</h1>
+            <h2 class="mb-4">Country Not Found</h2>
+            <p class="lead mb-4">The country you're looking for doesn't exist in our database.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i>Back Home
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Go Back
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
