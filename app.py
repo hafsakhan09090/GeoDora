@@ -19,17 +19,31 @@ DB_FILE = os.path.join(os.path.dirname(__file__), "geography.db")
 def format_int(value):
     """Format integer with commas."""
     try:
-        if value is None:
+        if value is None or value == '':
             return "N/A"
-        # Extract numbers from strings like "approx42000000"
+        
+        # Handle string values that might contain text
         if isinstance(value, str):
             import re
-            numbers = re.findall(r'\d+', value)
-            if numbers:
-                value = int(numbers[0])
+            # Remove all non-numeric characters except decimal points
+            cleaned = re.sub(r'[^\d.]', '', value)
+            if cleaned:
+                # Try to convert to integer
+                num = float(cleaned)
+                if num.is_integer():
+                    return f"{int(num):,}"
+                else:
+                    return f"{num:,.1f}"
             else:
+                # If no numbers found, return original
                 return value
-        return f"{int(float(value)):,}"
+        
+        # Handle numbers directly
+        num = float(value)
+        if num.is_integer():
+            return f"{int(num):,}"
+        else:
+            return f"{num:,.1f}"
     except (ValueError, TypeError):
         return str(value) if value else "N/A"
 
@@ -37,7 +51,7 @@ def format_int(value):
 def format_float(value):
     """Format float with commas and 1 decimal."""
     try:
-        if value is None:
+        if value is None or value == '':
             return "N/A"
         if isinstance(value, str):
             import re
@@ -54,7 +68,7 @@ def format_float(value):
 def format_area(value):
     """Format area with units."""
     try:
-        if value is None:
+        if value is None or value == '':
             return "N/A"
         if isinstance(value, str):
             # Check if it already has units
@@ -81,7 +95,7 @@ def format_area(value):
 @app.template_filter('extract_number')
 def extract_number(value):
     """Extract first number from a string."""
-    if value is None:
+    if value is None or value == '':
         return 0
     try:
         if isinstance(value, (int, float)):
@@ -157,7 +171,7 @@ def calculate_country_stats():
         stats['total_countries'] = result['count'] if result['count'] else 0
         
         # Total population (extract numbers from strings)
-        cursor = conn.execute("SELECT population FROM countries WHERE population IS NOT NULL")
+        cursor = conn.execute("SELECT population FROM countries WHERE population IS NOT NULL AND population != ''")
         total_pop = 0
         for row in cursor.fetchall():
             pop_str = row['population']
@@ -172,7 +186,7 @@ def calculate_country_stats():
         stats['total_population'] = total_pop
         
         # Largest and smallest by area
-        cursor = conn.execute("SELECT name, area FROM countries WHERE area IS NOT NULL")
+        cursor = conn.execute("SELECT name, area FROM countries WHERE area IS NOT NULL AND area != ''")
         countries_with_area = []
         for row in cursor.fetchall():
             name = row['name']
@@ -183,25 +197,25 @@ def calculate_country_stats():
                     numbers = re.findall(r'\d+\.?\d*', area_str)
                     if numbers:
                         area_num = float(numbers[0])
-                        countries_with_area.append((name, area_num, area_str))
+                        countries_with_area.append({'name': name, 'area_num': area_num, 'area_str': area_str})
                 except:
-                    countries_with_area.append((name, 0, area_str))
+                    countries_with_area.append({'name': name, 'area_num': 0, 'area_str': area_str})
         
         if countries_with_area:
             # Sort by area number
-            countries_with_area.sort(key=lambda x: x[1], reverse=True)
+            countries_with_area.sort(key=lambda x: x['area_num'], reverse=True)
             # Largest
-            largest_name, largest_num, largest_str = countries_with_area[0]
-            stats['largest_country'] = f"{largest_name} ({largest_num:,.0f} km²)" if largest_num > 0 else f"{largest_name} ({largest_str})"
+            largest = countries_with_area[0]
+            stats['largest_country'] = f"{largest['name']} ({largest['area_num']:,.0f} km²)" if largest['area_num'] > 0 else f"{largest['name']} ({largest['area_str']})"
             
             # Smallest (non-zero)
-            non_zero = [c for c in countries_with_area if c[1] > 0]
+            non_zero = [c for c in countries_with_area if c['area_num'] > 0]
             if non_zero:
-                smallest_name, smallest_num, smallest_str = min(non_zero, key=lambda x: x[1])
-                stats['smallest_country'] = f"{smallest_name} ({smallest_num:,.0f} km²)" if smallest_num > 0 else f"{smallest_name} ({smallest_str})"
+                smallest = min(non_zero, key=lambda x: x['area_num'])
+                stats['smallest_country'] = f"{smallest['name']} ({smallest['area_num']:,.0f} km²)" if smallest['area_num'] > 0 else f"{smallest['name']} ({smallest['area_str']})"
         
         # Continents distribution
-        cursor = conn.execute("SELECT region, COUNT(*) as count FROM countries WHERE region IS NOT NULL GROUP BY region")
+        cursor = conn.execute("SELECT region, COUNT(*) as count FROM countries WHERE region IS NOT NULL AND region != '' GROUP BY region")
         stats['continents'] = {row['region']: row['count'] for row in cursor.fetchall()}
         
     except Exception as e:
@@ -383,13 +397,13 @@ def index():
     
     # Add population sorting if column exists
     if 'population' in country_columns:
-        sort_options['pop_high'] = 'CAST(SUBSTR(population, 1, INSTR(population || " ", " ")) AS INTEGER) DESC, name ASC'
-        sort_options['pop_low'] = 'CAST(SUBSTR(population, 1, INSTR(population || " ", " ")) AS INTEGER) ASC, name ASC'
+        sort_options['pop_high'] = 'population DESC, name ASC'
+        sort_options['pop_low'] = 'population ASC, name ASC'
     
     # Add area sorting if column exists
     if 'area' in country_columns:
-        sort_options['area_high'] = 'CAST(SUBSTR(area, 1, INSTR(area || " ", " ")) AS INTEGER) DESC, name ASC'
-        sort_options['area_low'] = 'CAST(SUBSTR(area, 1, INSTR(area || " ", " ")) AS INTEGER) ASC, name ASC'
+        sort_options['area_high'] = 'area DESC, name ASC'
+        sort_options['area_low'] = 'area ASC, name ASC'
     
     # Add region sorting if column exists
     if 'region' in country_columns:
@@ -554,6 +568,15 @@ def compare_countries():
 def quiz():
     """Interactive geography quiz."""
     quiz_type = request.args.get('type', 'capitals')
+    difficulty = request.args.get('difficulty', 'easy')
+    
+    # Set number of questions based on difficulty
+    if difficulty == 'easy':
+        num_questions = 10
+    elif difficulty == 'medium':
+        num_questions = 15
+    else:  # hard
+        num_questions = 20
     
     conn = get_db_connection()
     
@@ -562,8 +585,8 @@ def quiz():
         questions = conn.execute("""
             SELECT name, capital, flag FROM countries 
             WHERE capital IS NOT NULL AND capital != ''
-            ORDER BY RANDOM() LIMIT 10
-        """).fetchall()
+            ORDER BY RANDOM() LIMIT ?
+        """, (num_questions,)).fetchall()
         
         quiz_data = []
         for question in questions:
@@ -587,8 +610,8 @@ def quiz():
         # Flag identification quiz
         questions = conn.execute("""
             SELECT name, flag FROM countries 
-            ORDER BY RANDOM() LIMIT 10
-        """).fetchall()
+            ORDER BY RANDOM() LIMIT ?
+        """, (num_questions,)).fetchall()
         
         quiz_data = []
         for question in questions:
@@ -610,8 +633,8 @@ def quiz():
     else:  # general knowledge
         questions = conn.execute("""
             SELECT name, capital, population, area, region, flag FROM countries 
-            ORDER BY RANDOM() LIMIT 10
-        """).fetchall()
+            ORDER BY RANDOM() LIMIT ?
+        """, (num_questions,)).fetchall()
         
         quiz_data = []
         for question in questions:
@@ -696,7 +719,8 @@ def quiz():
     
     return render_template("quiz.html",
                          quiz_data=quiz_data,
-                         quiz_type=quiz_type)
+                         quiz_type=quiz_type,
+                         difficulty=difficulty)
 
 @app.route("/api/countries")
 def api_countries():
@@ -748,43 +772,47 @@ def statistics():
     top_populous_raw = conn.execute("""
         SELECT name, flag, population 
         FROM countries 
-        WHERE population IS NOT NULL 
+        WHERE population IS NOT NULL AND population != ''
         ORDER BY name
     """).fetchall()
     
     # Extract numbers and sort
     top_populous = []
     for country in top_populous_raw:
-        name = country['name']
-        flag = country['flag']
-        pop_str = country['population']
-        pop_num = extract_number(pop_str)
-        top_populous.append((name, flag, pop_num, pop_str))
+        top_populous.append({
+            'name': country['name'],
+            'flag': country['flag'],
+            'population': country['population'],
+            'population_num': extract_number(country['population'])
+        })
     
-    top_populous.sort(key=lambda x: x[2], reverse=True)
+    # Sort by population number
+    top_populous.sort(key=lambda x: x['population_num'], reverse=True)
     top_populous = top_populous[:10]
     
     # Get top 10 largest by area
     top_area_raw = conn.execute("""
         SELECT name, flag, area 
         FROM countries 
-        WHERE area IS NOT NULL 
+        WHERE area IS NOT NULL AND area != ''
         ORDER BY name
     """).fetchall()
     
     top_area = []
     for country in top_area_raw:
-        name = country['name']
-        flag = country['flag']
-        area_str = country['area']
-        area_num = extract_number(area_str)
-        top_area.append((name, flag, area_num, area_str))
+        top_area.append({
+            'name': country['name'],
+            'flag': country['flag'],
+            'area': country['area'],
+            'area_num': extract_number(country['area'])
+        })
     
-    top_area.sort(key=lambda x: x[2], reverse=True)
+    # Sort by area number
+    top_area.sort(key=lambda x: x['area_num'], reverse=True)
     top_area = top_area[:10]
     
     # Get continent statistics
-    continent_stats = conn.execute("""
+    continent_stats_raw = conn.execute("""
         SELECT region, 
                COUNT(*) as country_count
         FROM countries 
@@ -792,6 +820,35 @@ def statistics():
         GROUP BY region
         ORDER BY country_count DESC
     """).fetchall()
+    
+    # Convert continent stats to list of dicts
+    continent_stats = []
+    for row in continent_stats_raw:
+        continent_stats.append({
+            'region': row['region'],
+            'country_count': row['country_count'],
+            'total_population': 0,
+            'total_area': 0
+        })
+    
+    # Try to get population and area totals for each continent
+    for continent in continent_stats:
+        pop_result = conn.execute("""
+            SELECT SUM(CAST(SUBSTR(population, 1, INSTR(population || ' ', ' ')) AS INTEGER)) as total_pop
+            FROM countries 
+            WHERE region = ? AND population IS NOT NULL AND population != ''
+        """, (continent['region'],)).fetchone()
+        
+        area_result = conn.execute("""
+            SELECT SUM(CAST(SUBSTR(area, 1, INSTR(area || ' ', ' ')) AS INTEGER)) as total_area
+            FROM countries 
+            WHERE region = ? AND area IS NOT NULL AND area != ''
+        """, (continent['region'],)).fetchone()
+        
+        if pop_result and pop_result['total_pop']:
+            continent['total_population'] = pop_result['total_pop']
+        if area_result and area_result['total_area']:
+            continent['total_area'] = area_result['total_area']
     
     conn.close()
     
@@ -811,7 +868,8 @@ def about():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    country_name = request.args.get('country_name', '')
+    return render_template('404.html', country_name=country_name), 404
 
 @app.errorhandler(500)
 def internal_server_error(e):

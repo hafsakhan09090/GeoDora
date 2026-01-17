@@ -1,32 +1,107 @@
 {% extends "layout.html" %}
 
-{% block title %}Page Not Found - GeoDora{% endblock %}
+{% block title %}About - GeoDora{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row justify-content-center align-items-center min-vh-80">
-        <div class="col-lg-6 text-center">
-            <div class="error-container">
-                <h1 class="display-1 fw-bold text-muted mb-4">404</h1>
-                <i class="fas fa-map-marked-alt fa-5x text-primary mb-4"></i>
-                <h2 class="mb-3">Country Not Found</h2>
-                <p class="lead text-muted mb-4">
-                    {% if country_name %}
-                    The country "{{ country_name }}" doesn't exist in our database.
-                    {% else %}
-                    The page you're looking for doesn't exist.
-                    {% endif %}
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="/" class="btn btn-primary btn-lg">
-                        <i class="fas fa-home me-2"></i>Back to Home
-                    </a>
-                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
-                        <i class="fas fa-arrow-left me-2"></i>Go Back
-                    </button>
-                    <a href="/quiz" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-gamepad me-2"></i>Take a Quiz
-                    </a>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="display-6 fw-bold mb-4 text-center">About GeoDora</h1>
+                    
+                    <div class="row align-items-center mb-5">
+                        <div class="col-md-6">
+                            <h2 class="mb-3">Explore the World</h2>
+                            <p class="lead">
+                                GeoDora is a comprehensive geography web application that allows you to explore 
+                                countries, compare statistics, and test your knowledge with interactive quizzes.
+                            </p>
+                            <p>
+                                Built with Flask and SQLite, this project demonstrates how to create an 
+                                educational web application with modern UI components and responsive design.
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <i class="fas fa-globe-americas" style="font-size: 8rem; color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-5">
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-primary h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-flag fa-3x text-primary mb-3"></i>
+                                    <h4>Country Database</h4>
+                                    <p>Comprehensive information about {{ stats.total_countries }} countries including flags, capitals, and statistics.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-balance-scale fa-3x text-success mb-3"></i>
+                                    <h4>Compare Countries</h4>
+                                    <p>Side-by-side comparison of countries with interactive charts and detailed metrics.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-warning h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-gamepad fa-3x text-warning mb-3"></i>
+                                    <h4>Interactive Quiz</h4>
+                                    <p>Test your geography knowledge with multiple quiz types and difficulty levels.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-4 mt-4">
+                        <h3 class="mb-3">Project Details</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Technologies Used</h5>
+                                <ul>
+                                    <li>Flask (Python Web Framework)</li>
+                                    <li>SQLite (Database)</li>
+                                    <li>Bootstrap 5 (CSS Framework)</li>
+                                    <li>Font Awesome (Icons)</li>
+                                    <li>JavaScript (Interactivity)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Features</h5>
+                                <ul>
+                                    <li>Responsive design for all devices</li>
+                                    <li>Dark/Light theme toggle</li>
+                                    <li>Search and filter countries</li>
+                                    <li>Country comparison tool</li>
+                                    <li>Interactive geography quiz</li>
+                                    <li>Statistics and analytics</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-4 mt-4">
+                        <h3 class="mb-3">Developer</h3>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">Hafsa Khan</h5>
+                                <p class="text-muted mb-2">Full Stack Developer</p>
+                                <p>This project was created as a demonstration of web development skills 
+                                and educational application design.</p>
+                            </div>
+                            <div class="ms-4">
+                                <a href="https://github.com/hafsakhan09090" 
+                                   class="btn btn-outline-dark" 
+                                   target="_blank">
+                                    <i class="fab fa-github me-2"></i>GitHub
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

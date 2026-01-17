@@ -1,25 +1,232 @@
-<!-- Bordering Countries -->
-{% if borders %}
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h5 class="card-title mb-4">
-            <i class="fas fa-border-all me-2 text-primary"></i>Bordering Countries
-        </h5>
-        <div class="row g-2">
-            {% for border in borders %}
-            <div class="col-6">
-                <a href="/country/{{ border.name|urlencode }}" 
-                   class="card border h-100 text-decoration-none hover-lift">
-                    <div class="card-body text-center p-3">
-                        <img src="{{ border.flag }}" 
-                             alt="{{ border.name }}" 
-                             class="flag-image mb-2">
-                        <div class="small fw-medium">{{ border.name }}</div>
+{% extends "layout.html" %}
+
+{% block title %}{{ country.name }} - GeoDora{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Country Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 text-center mb-4 mb-lg-0">
+                            <img src="{{ country.flag }}" 
+                                 alt="{{ country.name }} flag" 
+                                 class="flag-image-detail mb-3">
+                            <h2 class="mb-2">{{ country.name }}</h2>
+                            {% if country.region %}
+                            <span class="badge bg-primary">{{ country.region }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-9">
+                            <div class="row">
+                                {% if country.capital %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Capital</div>
+                                    <div class="h5">{{ country.capital }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if country.population %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Population</div>
+                                    <div class="h5">{{ country.population|format_int }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if country.area %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Area</div>
+                                    <div class="h5">{{ country.area|format_area }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if country.currency %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Currency</div>
+                                    <div class="h5">{{ country.currency }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if country.democracy_type %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Government</div>
+                                    <div class="h5">{{ country.democracy_type }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if country.tele_code %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="small text-muted">Calling Code</div>
+                                    <div class="h5">+{{ country.tele_code }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </a>
+                </div>
             </div>
-            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Quick Facts -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Quick Facts
+                    </h5>
+                    <ul class="list-unstyled">
+                        {% for fact in facts %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {{ fact }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Country Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Detailed Information
+                    </h5>
+                    
+                    <div class="row">
+                        {% if country.timezone %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Timezone:</strong> {{ country.timezone }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if country.languages %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Languages:</strong> 
+                            {{ country.languages|join(', ') }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if country.climate %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Climate:</strong> {{ country.climate }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if country.religion %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Religion:</strong> {{ country.religion }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-cog me-2"></i>Actions
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary compare-btn" 
+                                data-country="{{ country.name }}">
+                            <i class="fas fa-balance-scale me-2"></i>Add to Comparison
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Similar Countries -->
+            {% if similar_countries %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-globe-americas me-2 text-info"></i>Similar Countries
+                    </h5>
+                    <div class="row g-2">
+                        {% for country in similar_countries %}
+                        <div class="col-6">
+                            <a href="/country/{{ country.name|urlencode }}" 
+                               class="card border h-100 text-decoration-none hover-lift">
+                                <div class="card-body text-center p-2">
+                                    <img src="{{ country.flag }}" 
+                                         alt="{{ country.name }}" 
+                                         class="flag-image mb-2">
+                                    <div class="small fw-medium">{{ country.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Bordering Countries -->
+            {% if borders %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-border-all me-2 text-primary"></i>Bordering Countries
+                    </h5>
+                    <div class="row g-2">
+                        {% for border in borders %}
+                        <div class="col-6">
+                            <a href="/country/{{ border.name|urlencode }}" 
+                               class="card border h-100 text-decoration-none hover-lift">
+                                <div class="card-body text-center p-2">
+                                    <img src="{{ border.flag }}" 
+                                         alt="{{ border.name }}" 
+                                         class="flag-image mb-2">
+                                    <div class="small fw-medium">{{ border.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- States/Provinces -->
+            {% if states %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-map me-2 text-success"></i>States/Provinces
+                    </h5>
+                    <div class="row g-1">
+                        {% for state in states %}
+                        <div class="col-6">
+                            <div class="border p-2 small rounded mb-2">
+                                {{ state.name }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
-{% endif %}
+
+<script>
+document.querySelector('.compare-btn').addEventListener('click', function() {
+    const countryName = this.dataset.country;
+    addToComparison(countryName);
+});
+</script>
+{% endblock %}
